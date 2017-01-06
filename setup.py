@@ -9,7 +9,10 @@ def get_info(name):
     basedir = os.path.dirname(__file__)
     with open(os.path.join(basedir, 'onefilter/__init__.py')) as f:
         locals = {}
-        exec(f.read(), locals)
+        try:
+            exec(f.read(), locals)
+        except ImportError:
+            pass
         return locals[name]
 
 
