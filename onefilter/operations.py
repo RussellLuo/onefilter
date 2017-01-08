@@ -12,6 +12,13 @@ def instantiate(cls):
     return cls()
 
 
+def positional_arguments_as_a_list(meth):
+    @functools.wraps(meth)
+    def decorator(self, *args):
+        return meth(self, list(args))
+    return decorator
+
+
 def validate(schema):
     def wrapper(meth):
         @functools.wraps(meth)
@@ -96,6 +103,7 @@ class And(Operation):
 
         return self.merge_identifiers(node)
 
+    @positional_arguments_as_a_list
     @validate(Schema([node_or_size_one_dict]))
     def __call__(self, operands):
         return self.make_op(operands)
@@ -153,9 +161,10 @@ class In(Operation):
 
     operator = 'in'
 
+    @positional_arguments_as_a_list
     @validate(Schema([non_node]))
-    def __call__(self, operand):
-        return self.make_op([operand])
+    def __call__(self, items):
+        return self.make_op([items])
 
 
 @instantiate
