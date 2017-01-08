@@ -6,14 +6,16 @@ One filter for all structured data.
 ## Getting started
 
 ```pycon
->>> from onefilter import F, And, Or, Exists, Eq, Gte, Lte 
+>>> from onefilter import F, And, Or, Eq, In, Gte, Lte, Exists
 >>> from onefilter.es import ES
->>> f = F(a=Or([Exists(False), Eq(0)]), b=And([Gte(10), Lte(20)]))
+>>> f = F(a=1, b=In(2, 3, 4), c=And(Gte(5), Lte(9)), d=Or(Exists(False), Eq(0)))
 >>> c = ES(f)
 >>> import pprint; pprint.pprint(c)
-{'bool': {'must': [{'bool': {'should': [{'must_not': {'exists': {'field': 'a'}}},
-                                        {'term': {'a': 0}}]}},
-                   {'range': {'b': {'gte': 10, 'lte': 20}}}]}}
+{'bool': {'must': [{'term': {'a': 1}},
+                   {'range': {'c': {'gte': 5, 'lte': 9}}},
+                   {'terms': {'b': [2, 3, 4]}},
+                   {'bool': {'should': [{'must_not': {'exists': {'field': 'd'}}},
+                                        {'term': {'d': 0}}]}}]}}
 ```
 
 
