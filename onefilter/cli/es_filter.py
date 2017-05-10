@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
 
@@ -12,6 +12,10 @@ import onefilter as of
 from onefilter.es import ES
 
 
+def utf8_print(unicode_str):
+    print(unicode_str.encode('utf-8'))
+
+
 def make_onefilter_namespace():
     op_names = ('F', 'And', 'Or', 'Eq', 'In', 'Gte', 'Lte', 'Exists')
     return {op_name: getattr(of, op_name) for op_name in op_names}
@@ -23,7 +27,7 @@ def make_query_body(dsl):
     try:
         body = eval(dsl, make_onefilter_namespace())
     except Exception:
-        print('Unrecognized filter `{}`'.format(unicode(dsl, encoding='utf-8')))
+        utf8_print('Unrecognized filter `{}`'.format(dsl))
         sys.exit(1)
     else:
         return {'query': ES(body)}
@@ -39,10 +43,10 @@ def to_curl(args):
             index=args.index,
             doc_type='/%s' % args.doc_type if args.doc_type else '',
             pretty='?pretty' if args.pretty else '',
-            query=json.dumps(query, sort_keys=True, ensure_ascii=False)
+            query=json.dumps(query, ensure_ascii=False)
         )
     )
-    print(curl_cmd)
+    utf8_print(curl_cmd)
     
 
 def filter(args):
@@ -51,13 +55,13 @@ def filter(args):
         query = make_query_body(args.filter)
         result = es_client.search(args.index, args.doc_type, query)
     except Exception as exc:
-        print(str(exc))
+        utf8_print(unicode(exc))
     else:
         # Indent and sort keys by name, if the user asks for pretty
         kwargs = dict(sort_keys=True, indent=2) if args.pretty else {}
         # Always avoid unicode escapes to improve readability
         output = json.dumps(result, ensure_ascii=False, **kwargs)
-        print(output.encode('utf-8'))
+        utf8_print(output)
 
 
 def main():
@@ -66,7 +70,8 @@ def main():
     parser.add_argument('--port', '-p', type=int, default=9200)
     parser.add_argument('--index', '-i', required=True)
     parser.add_argument('--doc-type', '-d')
-    parser.add_argument('--filter', '-f')
+    parser.add_argument('--filter', '-f',
+                        type=lambda s: unicode(s, sys.stdin.encoding))
     parser.add_argument('--pretty', action='store_true')
     parser.add_argument('--to-curl', action='store_true')
     parser.add_argument('--help', action='help',
