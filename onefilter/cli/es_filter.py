@@ -4,6 +4,7 @@ from __future__ import absolute_import, unicode_literals
 
 import argparse
 import json
+import sys
 
 from elasticsearch import Elasticsearch
 
@@ -17,8 +18,15 @@ def make_onefilter_namespace():
 
 
 def make_query_body(dsl):
-    body = eval(dsl, make_onefilter_namespace())
-    return {'query': ES(body)}
+    if not dsl:
+        return {'query': {'match_all': {}}}
+    try:
+        body = eval(dsl, make_onefilter_namespace())
+    except Exception:
+        print('Unrecognized filter `{}`'.format(unicode(dsl, encoding='utf-8')))
+        sys.exit(1)
+    else:
+        return {'query': ES(body)}
 
 
 def to_curl(args):
@@ -39,7 +47,6 @@ def to_curl(args):
 
 def filter(args):
     es_client = Elasticsearch(['%s:%s' % (args.host, args.port)])
-    body = eval(args.filter, make_onefilter_namespace())
     try:
         query = make_query_body(args.filter)
         result = es_client.search(args.index, args.doc_type, query)
