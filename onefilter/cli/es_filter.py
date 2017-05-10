@@ -53,12 +53,11 @@ def filter(args):
     except Exception as exc:
         print(str(exc))
     else:
-        if args.pretty:
-            output = json.dumps(result, sort_keys=True,
-                                ensure_ascii=False, indent=2)
-        else:
-            output = result
-        print(output)
+        # Indent and sort keys by name, if the user asks for pretty
+        kwargs = dict(sort_keys=True, indent=2) if args.pretty else {}
+        # Always avoid unicode escapes to improve readability
+        output = json.dumps(result, ensure_ascii=False, **kwargs)
+        print(output.encode('utf-8'))
 
 
 def main():
