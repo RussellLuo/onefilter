@@ -31,5 +31,11 @@ setup(
     url='https://github.com/RussellLuo/onefilter',
     install_requires=[
         'voluptuous',
+        'elasticsearch==2.4.0',
     ],
+    entry_points={
+        'console_scripts': [
+            'es-filter= onefilter.cli.es_filter:main',
+        ],
+    },
 )
